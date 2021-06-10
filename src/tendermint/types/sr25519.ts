@@ -1,8 +1,6 @@
 import * as crypto from "crypto";
 import { PrivKey, PubKey } from "./key";
-// const sr25519 = await import("sr25519");
-let sr25519: typeof import("sr25519");
-import("sr25519").then((mod) => (sr25519 = mod));
+import * as nacl from "tweetnacl";
 
 /**
  * sr25519
@@ -16,9 +14,9 @@ export class PrivKeySr25519 implements PrivKey {
    * @param privKey
    */
   constructor(privKey: Buffer) {
-    const keypair = sr25519.keypair_from_seed(new Uint8Array(privKey));
-    this.pubKey = new PubKeySr25519(Buffer.from(keypair.slice(64, 96)));
     this.privKey = privKey;
+    const keypair = nacl.sign.keyPair.fromSeed(this.privKey);
+    this.pubKey = new PubKeySr25519(Buffer.from(keypair.publicKey));
   }
 
   /**
@@ -33,16 +31,10 @@ export class PrivKeySr25519 implements PrivKey {
    * @param message
    */
   sign(message: Buffer) {
-    const keypair = sr25519.keypair_from_seed(new Uint8Array(this.privKey));
-    const privKey = keypair.slice(0, 64);
-    return Buffer.from(
-      sr25519.sign(
-        Uint8Array.from([]),
-        this.pubKey.toBuffer(),
-        privKey,
-        message,
-      ),
-    );
+    const keypair = nacl.sign.keyPair.fromSeed(this.privKey);
+
+    return nacl.sign(new Uint8Array(message), new Uint8Array(keypair.secretKey))
+      .buffer as Buffer;
   }
 
   /**
@@ -101,12 +93,10 @@ export class PubKeySr25519 implements PubKey {
    * @param message
    * @param signature
    */
-  verify(signature: Buffer, message: Buffer) {
-    return sr25519.verify(
-      Uint8Array.from([]),
-      new Uint8Array(signature),
-      new Uint8Array(message),
-      new Uint8Array(this.pubKey),
+  verify(signature: Buffer) {
+    return (
+      nacl.sign.open(new Uint8Array(signature), new Uint8Array(this.pubKey)) !==
+      null
     );
   }
 
