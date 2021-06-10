@@ -1,7 +1,7 @@
 {
   "name": "@thorwallet/cosmos-client",
   "description": "REST API Client for Cosmos SDK Blockchain",
-  "version": "0.39.15",
+  "version": "0.39.17",
   "author": "LCNEM, Inc.",
   "bugs": {
     "url": "https://github.com/cosmos-client/cosmos-client-ts/issues"
